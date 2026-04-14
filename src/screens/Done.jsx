@@ -1,23 +1,29 @@
-// Done.jsx — Final screen. Shows connection strings and auto-starts port forwarding.
-//
-// Port forwarding starts automatically on mount so users don't need to run
-// "artemis connect" separately. The process stays alive until Ctrl+C.
+// Done.jsx — Final screen. Shows connection strings, auto-starts port forwarding,
+// and automatically launches the Mission Control web dashboard.
 
 import React, { useEffect, useState } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { Box, Text } from 'ink';
 import { spawn } from 'child_process';
-
-// Opens a URL in the default browser — works on Windows, macOS, and Linux.
-function openBrowser(url) {
-  const opener =
-    process.platform === 'win32'  ? spawn('cmd',     ['/c', 'start', url], { shell: true }) :
-    process.platform === 'darwin' ? spawn('open',    [url])                                  :
-                                    spawn('xdg-open', [url]);
-  opener.on('error', () => {}); // silently ignore if opener not found
-}
+import { existsSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { SERVICE_CATALOG } from '../services/catalog.js';
 
-// Standard local ports for port-forwarding (cleaner than NodePorts)
+// Find the web/ folder relative to wherever this CLI is installed.
+// process.argv[1] = full path to dist/cli.js
+// Going up one level from dist/ lands us at the package root, then into web/
+const WEB_DIR = resolve(dirname(process.argv[1]), '..', 'web');
+
+// Opens a URL in the default browser — cross-platform
+function openBrowser(url) {
+  const opener =
+    process.platform === 'win32'  ? spawn('cmd',      ['/c', 'start', url], { shell: true }) :
+    process.platform === 'darwin' ? spawn('open',     [url])                                  :
+                                    spawn('xdg-open',  [url]);
+  opener.on('error', () => {});
+}
+
+// Standard local ports for port-forwarding
 const PORT_MAP = {
   postgres:   { local: 5432,  remote: 5432  },
   redis:      { local: 6379,  remote: 6379  },
@@ -29,7 +35,6 @@ const PORT_MAP = {
   rabbitmq:   { local: 5672,  remote: 5672  },
 };
 
-// Clean connection strings using standard ports (via port-forward, not NodePort)
 const FORWARDED_STRINGS = {
   postgres:   'postgresql://postgres:artemis@localhost:5432/artemis',
   redis:      'redis://localhost:6379',
@@ -42,30 +47,34 @@ const FORWARDED_STRINGS = {
 };
 
 export default function Done({ results }) {
-  const deployed = results.filter(r => r.status === 'deployed');
-  const failed   = results.filter(r => r.status === 'failed');
+  const deployed   = results.filter(r => r.status === 'deployed');
+  const failed     = results.filter(r => r.status === 'failed');
   const getService = (id) => SERVICE_CATALOG.find(s => s.id === id);
 
-  // Track port-forward status per service
+  // Port-forward status per service
   const [fwdStatus, setFwdStatus] = useState(
     Object.fromEntries(deployed.map(r => [r.id, 'starting']))
   );
 
-  // Use a ref (not state) for browserOpened — state causes stale closures inside
-  // useEffect, so the flag never actually prevents double-opens.
-  // A ref is mutable and always gives the current value inside any closure.
-  const browserOpened = React.useRef(false);
+  // Web UI status — 'installing' | 'starting' | 'ready' | 'unavailable'
+  const [uiStatus, setUiStatus] = useState(
+    existsSync(WEB_DIR) ? 'installing' : 'unavailable'
+  );
 
+  // Refs so closures always see current values (no stale state bugs)
+  const browserOpened = React.useRef(false);
+  const webProc       = React.useRef(null);
+
+  // ── Port-forwarding ──────────────────────────────────────────────────────────
   useEffect(() => {
     const activeProcs = {};
     let cancelled = false;
 
-    // markLive — flips a service to 🟢 live and opens the browser the first time
     function markLive(id) {
       setFwdStatus(prev => {
-        if (prev[id] === 'live') return prev; // already live, no-op
+        if (prev[id] === 'live') return prev;
         const next = { ...prev, [id]: 'live' };
-        // Open browser once — use ref so the check is never stale
+        // Open browser as soon as the first service is live — but only once
         if (!browserOpened.current) {
           browserOpened.current = true;
           setTimeout(() => openBrowser('http://localhost:4000'), 500);
@@ -74,8 +83,6 @@ export default function Done({ results }) {
       });
     }
 
-    // startForward — starts a kubectl port-forward for one service.
-    // If it dies (pod not ready yet), waits 3s and retries automatically.
     function startForward(result) {
       if (cancelled) return;
       const pf = PORT_MAP[result.id];
@@ -91,31 +98,20 @@ export default function Done({ results }) {
 
       activeProcs[result.id] = proc;
 
-      // kubectl sometimes writes "Forwarding from" to stdout, sometimes stderr
-      // — listen to both so we never miss it.
-      // Also: if the port is already bound (previous session still running),
-      // kubectl exits with "bind: only one usage..." — that means the forward
-      // IS active, just held by the old process. Mark as live immediately.
       function onData(data) {
         const text = data.toString();
-        if (text.includes('Forwarding from')) {
-          markLive(result.id);
-        }
-        if (text.includes('bind:') || text.includes('already in use') || text.includes('address already')) {
-          markLive(result.id);
-        }
+        if (text.includes('Forwarding from'))                                     markLive(result.id);
+        if (text.includes('bind:') || text.includes('already in use') ||
+            text.includes('address already'))                                     markLive(result.id);
       }
 
       proc.stdout.on('data', onData);
       proc.stderr.on('data', onData);
 
-      proc.on('close', (code) => {
+      proc.on('close', () => {
         if (cancelled) return;
-        // If port is already in use (exit code 1 + "bind" error), it means
-        // a previous port-forward is still holding the port — treat as live.
-        // Otherwise retry after 3s.
         setFwdStatus(prev => {
-          if (prev[result.id] === 'live') return prev; // already live, don't reset
+          if (prev[result.id] === 'live') return prev;
           return { ...prev, [result.id]: 'starting' };
         });
         setTimeout(() => startForward(result), 3000);
@@ -129,20 +125,79 @@ export default function Done({ results }) {
       Object.values(activeProcs).forEach(p => p.kill());
     };
     process.on('SIGINT', cleanup);
-    process.on('exit', cleanup);
-
-    return () => {
-      cleanup();
-      process.off('SIGINT', cleanup);
-    };
+    process.on('exit',   cleanup);
+    return () => { cleanup(); process.off('SIGINT', cleanup); };
   }, []);
+
+  // ── Web UI auto-start ────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!existsSync(WEB_DIR)) return; // web/ folder not found — skip
+
+    // Step 1: if node_modules is missing, run npm install first (first-time user)
+    const needsInstall = !existsSync(resolve(WEB_DIR, 'node_modules'));
+
+    function startWebServer() {
+      setUiStatus('starting');
+
+      // Spawn `npm run dev` inside web/ — stdio: pipe so we can detect when it's ready
+      const proc = spawn('npm', ['run', 'dev'], {
+        cwd:   WEB_DIR,
+        stdio: 'pipe',
+        shell: true,
+      });
+
+      webProc.current = proc;
+
+      // Next.js prints "Ready" when the server is accepting connections
+      function onOutput(data) {
+        const text = data.toString();
+        if (text.includes('Ready') || text.includes('ready') || text.includes('started server')) {
+          setUiStatus('ready');
+        }
+      }
+
+      proc.stdout.on('data', onOutput);
+      proc.stderr.on('data', onOutput);
+      proc.on('close', () => setUiStatus('unavailable'));
+    }
+
+    if (needsInstall) {
+      // Run npm install silently, then start the server
+      setUiStatus('installing');
+      const install = spawn('npm', ['install'], {
+        cwd:   WEB_DIR,
+        stdio: 'pipe',
+        shell: true,
+      });
+      install.on('close', (code) => {
+        if (code === 0) startWebServer();
+        else setUiStatus('unavailable');
+      });
+    } else {
+      startWebServer();
+    }
+
+    // Kill the web server when the CLI exits
+    const cleanup = () => { if (webProc.current) webProc.current.kill(); };
+    process.on('SIGINT', cleanup);
+    process.on('exit',   cleanup);
+    return () => { cleanup(); process.off('SIGINT', cleanup); };
+  }, []);
+
+  // ── UI label helpers ─────────────────────────────────────────────────────────
+  const UI_LABEL = {
+    installing:  { text: '📦 installing dependencies...', color: 'yellow' },
+    starting:    { text: '⏳ starting server...',         color: 'yellow' },
+    ready:       { text: '🟢 ready at http://localhost:4000', color: 'green'  },
+    unavailable: { text: '✗  web UI not found',           color: 'red'    },
+  };
 
   return (
     <Box flexDirection="column" paddingTop={1} paddingLeft={2}>
 
       <Text color="green" bold>🚀 All systems go — Artemis is in orbit</Text>
 
-      {/* Deployed services with forwarded connection strings */}
+      {/* Deployed services */}
       {deployed.length > 0 && (
         <Box flexDirection="column" marginTop={1}>
           {deployed.map(result => {
@@ -150,14 +205,13 @@ export default function Done({ results }) {
             if (!service) return null;
             const status = fwdStatus[result.id];
             const cs = FORWARDED_STRINGS[result.id] || service.connectionStrings[0];
-
             return (
               <Box key={result.id} flexDirection="column" marginBottom={1}>
                 <Box>
                   <Text color="green">  ● </Text>
                   <Text color="white" bold>{service.name.padEnd(14)}</Text>
-                  {status === 'live'    && <Text color="green">  🟢 live</Text>}
-                  {status === 'starting'&& <Text color="yellow">  ⏳ waiting for pod...</Text>}
+                  {status === 'live'     && <Text color="green">  🟢 live</Text>}
+                  {status === 'starting' && <Text color="yellow">  ⏳ waiting for pod...</Text>}
                 </Box>
                 <Box paddingLeft={5}>
                   <Text color="cyan">{cs}</Text>
@@ -181,19 +235,22 @@ export default function Done({ results }) {
         </Box>
       )}
 
+      {/* Mission Control status */}
       <Box flexDirection="column" marginTop={2} paddingLeft={2} borderStyle="single" borderColor="gray">
         <Text color="gray">🛰️  Mission control is live. Press Ctrl+C to abort.</Text>
+
         <Box marginTop={1}>
-          <Text color="cyan">Opening Mission Control at http://localhost:4000 ...</Text>
+          <Text color="gray">  Mission Control  </Text>
+          <Text color={UI_LABEL[uiStatus]?.color ?? 'gray'}>
+            {UI_LABEL[uiStatus]?.text ?? ''}
+          </Text>
         </Box>
+
         <Box marginTop={1}>
           <Text color="gray">Run <Text color="white">npx artemis-cli status</Text>  to see this again.</Text>
         </Box>
         <Box>
           <Text color="gray">Run <Text color="white">npx artemis-cli down</Text>    to destroy the mission.</Text>
-        </Box>
-        <Box>
-          <Text color="gray">Run <Text color="white">npx artemis-cli ui</Text>      to reopen the dashboard.</Text>
         </Box>
       </Box>
 
