@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body className="flex h-screen overflow-hidden">
+      <body className="flex h-screen overflow-hidden bg-white">
         <TooltipProvider>
           <Sidebar />
           <main className="flex-1 overflow-y-auto">

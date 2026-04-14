@@ -8,33 +8,31 @@ import {
   Database,
   Layers,
   FileText,
-  Rocket,
-  CircleDot,
   Leaf,
 } from "lucide-react";
 
 const NAV = [
-  { href: "/",         label: "Mission Control", icon: LayoutDashboard },
-  { href: "/postgres", label: "PostgreSQL",       icon: Database        },
-  { href: "/redis",    label: "Redis",            icon: Layers          },
-  { href: "/mongodb",  label: "MongoDB",          icon: Leaf            },
-  { href: "/docs",     label: "Docs",             icon: FileText        },
+  { href: "/",         label: "Dashboard",  icon: LayoutDashboard },
+  { href: "/postgres", label: "PostgreSQL",  icon: Database        },
+  { href: "/redis",    label: "Redis",       icon: Layers          },
+  { href: "/mongodb",  label: "MongoDB",     icon: Leaf            },
+  { href: "/docs",     label: "Docs",        icon: FileText        },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex flex-col w-56 shrink-0 border-r border-border bg-sidebar h-screen sticky top-0">
+    <aside className="flex flex-col w-56 shrink-0 border-r border-gray-200 bg-white h-screen sticky top-0">
 
       {/* Logo */}
-      <div className="flex items-center gap-2 px-4 py-5 border-b border-border">
-        <Rocket className="w-5 h-5 text-primary" />
-        <span className="font-mono font-bold text-primary tracking-widest text-sm">ARTEMIS</span>
+      <div className="flex items-center gap-2 px-4 py-5 border-b border-gray-200">
+        <span className="text-lg">🚀</span>
+        <span className="font-bold text-gray-900 tracking-widest text-sm uppercase">Artemis</span>
       </div>
 
       {/* Nav */}
-      <nav className="flex flex-col gap-1 p-3 flex-1">
+      <nav className="flex flex-col gap-0.5 p-3 flex-1">
         {NAV.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;
           return (
@@ -42,10 +40,10 @@ export default function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors relative",
                 active
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                  ? "bg-blue-50 text-blue-600 font-medium border-l-2 border-blue-600 rounded-l-none pl-[10px]"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
               )}
             >
               <Icon className="w-4 h-4 shrink-0" />
@@ -56,8 +54,8 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-border">
-        <p className="text-xs text-muted-foreground font-mono">v1.0.0 · Krish Pinto</p>
+      <div className="px-4 py-3 border-t border-gray-200">
+        <p className="text-xs text-gray-400 font-mono">v1.0.0 · Krish Pinto</p>
       </div>
     </aside>
   );

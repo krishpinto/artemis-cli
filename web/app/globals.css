@@ -37,30 +37,30 @@
   --radius-xl: calc(var(--radius) * 1.4);
 }
 
-/* Force dark space theme always */
+/* Light corporate theme */
 :root {
-  --background:          oklch(0.08 0.01 250);
-  --foreground:          oklch(0.95 0 0);
-  --card:                oklch(0.11 0.01 250);
-  --card-foreground:     oklch(0.95 0 0);
-  --popover:             oklch(0.11 0.01 250);
-  --popover-foreground:  oklch(0.95 0 0);
-  --primary:             oklch(0.72 0.18 200);   /* cyan */
-  --primary-foreground:  oklch(0.08 0.01 250);
-  --secondary:           oklch(0.15 0.01 250);
-  --secondary-foreground:oklch(0.95 0 0);
-  --muted:               oklch(0.15 0.01 250);
-  --muted-foreground:    oklch(0.55 0 0);
-  --accent:              oklch(0.72 0.18 200);
-  --accent-foreground:   oklch(0.08 0.01 250);
-  --destructive:         oklch(0.65 0.22 25);
-  --border:              oklch(1 0 0 / 8%);
-  --input:               oklch(1 0 0 / 10%);
-  --ring:                oklch(0.72 0.18 200);
-  --radius:              0.5rem;
-  --sidebar:             oklch(0.06 0.01 250);
-  --sidebar-foreground:  oklch(0.95 0 0);
-  --sidebar-border:      oklch(1 0 0 / 8%);
+  --background:           #ffffff;
+  --foreground:           #111111;
+  --card:                 #ffffff;
+  --card-foreground:      #111111;
+  --popover:              #ffffff;
+  --popover-foreground:   #111111;
+  --primary:              #2563eb;
+  --primary-foreground:   #ffffff;
+  --secondary:            #f3f4f6;
+  --secondary-foreground: #111111;
+  --muted:                #f3f4f6;
+  --muted-foreground:     #6b7280;
+  --accent:               #eff6ff;
+  --accent-foreground:    #2563eb;
+  --destructive:          #ef4444;
+  --border:               #e5e7eb;
+  --input:                #e5e7eb;
+  --ring:                 #2563eb;
+  --radius:               0.5rem;
+  --sidebar:              #ffffff;
+  --sidebar-foreground:   #111111;
+  --sidebar-border:       #e5e7eb;
 }
 
 @layer base {
@@ -69,15 +69,6 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
-}
-
-/* Subtle star field background */
-body {
-  background-image:
-    radial-gradient(1px 1px at 20% 30%, oklch(1 0 0 / 15%) 0%, transparent 100%),
-    radial-gradient(1px 1px at 80% 10%, oklch(1 0 0 / 10%) 0%, transparent 100%),
-    radial-gradient(1px 1px at 50% 70%, oklch(1 0 0 / 12%) 0%, transparent 100%),
-    radial-gradient(1px 1px at 10% 80%, oklch(1 0 0 / 8%)  0%, transparent 100%),
-    radial-gradient(1px 1px at 90% 60%, oklch(1 0 0 / 10%) 0%, transparent 100%);
 }

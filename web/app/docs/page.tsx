@@ -122,14 +122,14 @@ function CodeBlock({ code }: { code: string }) {
   }
   return (
     <div className="relative group">
-      <pre className="text-xs font-mono bg-muted/30 border border-border rounded-lg p-4 overflow-x-auto text-foreground/90 leading-relaxed">
+      <pre className="text-xs font-mono bg-gray-50 text-gray-800 rounded-xl p-4 overflow-x-auto leading-relaxed border border-gray-200">
         {code}
       </pre>
       <button
         onClick={copy}
-        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded bg-muted hover:bg-muted/80"
+        className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md bg-white border border-gray-200 hover:bg-gray-50 shadow-sm"
       >
-        {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3 text-muted-foreground" />}
+        {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3 text-gray-400" />}
       </button>
     </div>
   );
@@ -144,23 +144,23 @@ export default function DocsPage() {
   const lang    = activeLang[activeService] ?? langs[0];
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full bg-white">
 
-      {/* Left: Service list */}
-      <aside className="w-48 shrink-0 border-r border-border flex flex-col">
-        <div className="px-4 py-3 border-b border-border flex items-center gap-2">
-          <FileText className="w-4 h-4 text-primary" />
-          <span className="text-sm font-mono font-medium text-primary">Docs</span>
+      {/* Left: service list */}
+      <aside className="w-48 shrink-0 border-r border-gray-200 flex flex-col">
+        <div className="px-4 py-3 border-b border-gray-200 flex items-center gap-2">
+          <FileText className="w-4 h-4 text-blue-600" />
+          <span className="text-sm font-semibold text-gray-800">Docs</span>
         </div>
         <div className="p-2 space-y-0.5">
           {SERVICES.map(s => (
             <button
               key={s.id}
               onClick={() => setActiveService(s.id)}
-              className={`w-full text-left flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${
+              className={`w-full text-left flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
                 activeService === s.id
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                  ? "bg-blue-50 text-blue-700 font-medium"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               }`}
             >
               <span>{s.icon}</span>
@@ -170,39 +170,41 @@ export default function DocsPage() {
         </div>
       </aside>
 
-      {/* Right: Snippets */}
+      {/* Right: snippets */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-2xl">{service.icon}</span>
-            <h2 className="text-lg font-bold font-mono text-foreground">{service.name}</h2>
+            <h2 className="text-lg font-bold text-gray-900">{service.name}</h2>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500">
             Copy-paste snippets to connect from your app. Run{" "}
-            <code className="text-primary font-mono text-xs">artemis connect</code> first.
+            <code className="text-blue-600 font-mono text-xs bg-blue-50 px-1.5 py-0.5 rounded">npx artemis-cli connect</code> first.
           </p>
         </div>
 
         {/* Language tabs */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 border-b border-gray-200 pb-0">
           {langs.map(l => (
-            <Button
+            <button
               key={l}
-              variant={lang === l ? "default" : "outline"}
-              size="sm"
-              className="text-xs font-mono"
               onClick={() => setActiveLang(prev => ({ ...prev, [activeService]: l }))}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
+                lang === l
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-800"
+              }`}
             >
               {l}
-            </Button>
+            </button>
           ))}
         </div>
 
         {/* Snippets */}
-        <div className="space-y-4">
+        <div className="space-y-5">
           {service.snippets[lang].map((snippet, i) => (
             <div key={i} className="space-y-2">
-              <p className="text-xs text-muted-foreground font-mono uppercase tracking-wide">{snippet.label}</p>
+              <p className="text-xs text-gray-400 font-mono uppercase tracking-wider">{snippet.label}</p>
               <CodeBlock code={snippet.code} />
             </div>
           ))}
