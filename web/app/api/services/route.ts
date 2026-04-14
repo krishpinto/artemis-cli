@@ -75,7 +75,7 @@ async function checkRedis(): Promise<boolean> {
 }
 
 async function checkMongo(): Promise<boolean> {
-  const client = new MongoClient("mongodb://artemis:artemis@localhost:27017/artemis", {
+  const client = new MongoClient("mongodb://artemis:artemis@localhost:27017/artemis?authSource=admin", {
     serverSelectionTimeoutMS: 2000,
   });
   try {

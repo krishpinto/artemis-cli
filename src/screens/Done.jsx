@@ -58,6 +58,19 @@ export default function Done({ results }) {
     const activeProcs = {};
     let cancelled = false;
 
+    // markLive — flips a service to 🟢 live and opens the browser the first time
+    function markLive(id) {
+      setFwdStatus(prev => {
+        const next = { ...prev, [id]: 'live' };
+        const anyLive = Object.values(next).some(s => s === 'live');
+        if (anyLive && !browserOpened) {
+          setBrowserOpened(true);
+          setTimeout(() => openBrowser('http://localhost:4000'), 500);
+        }
+        return next;
+      });
+    }
+
     // startForward — starts a kubectl port-forward for one service.
     // If it dies (pod not ready yet), waits 3s and retries automatically.
     function startForward(result) {
@@ -75,25 +88,27 @@ export default function Done({ results }) {
 
       activeProcs[result.id] = proc;
 
-      proc.stdout.on('data', (data) => {
-        if (data.toString().includes('Forwarding from')) {
-          setFwdStatus(prev => {
-            const next = { ...prev, [result.id]: 'live' };
-            // First time any service goes live, open Mission Control in the browser
-            const anyLive = Object.values(next).some(s => s === 'live');
-            if (anyLive && !browserOpened) {
-              setBrowserOpened(true);
-              setTimeout(() => openBrowser('http://localhost:4000'), 500);
-            }
-            return next;
-          });
+      // kubectl sometimes writes "Forwarding from" to stdout, sometimes stderr
+      // — listen to both so we never miss it
+      function onData(data) {
+        const text = data.toString();
+        if (text.includes('Forwarding from')) {
+          markLive(result.id);
         }
-      });
+      }
+
+      proc.stdout.on('data', onData);
+      proc.stderr.on('data', onData);
 
       proc.on('close', (code) => {
         if (cancelled) return;
-        // Non-zero exit = pod not ready yet. Retry after 3s.
-        setFwdStatus(prev => ({ ...prev, [result.id]: 'starting' }));
+        // If port is already in use (exit code 1 + "bind" error), it means
+        // a previous port-forward is still holding the port — treat as live.
+        // Otherwise retry after 3s.
+        setFwdStatus(prev => {
+          if (prev[result.id] === 'live') return prev; // already live, don't reset
+          return { ...prev, [result.id]: 'starting' };
+        });
         setTimeout(() => startForward(result), 3000);
       });
     }

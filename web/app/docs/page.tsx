@@ -77,7 +77,7 @@ print(r.get('key'))  # b'value'` },
         { label: "Connect", code: `import { MongoClient } from 'mongodb';
 
 const client = new MongoClient(
-  'mongodb://artemis:artemis@localhost:27017/artemis'
+  'mongodb://artemis:artemis@localhost:27017/artemis?authSource=admin'
 );
 
 await client.connect();
@@ -90,7 +90,7 @@ console.log(users);` },
         { label: "Connect", code: `from pymongo import MongoClient
 
 client = MongoClient(
-  'mongodb://artemis:artemis@localhost:27017/artemis'
+  'mongodb://artemis:artemis@localhost:27017/artemis?authSource=admin'
 )
 db = client['artemis']
 users = list(db['users'].find())
@@ -101,7 +101,7 @@ print(users)` },
         { label: "Connect", code: `import mongoose from 'mongoose';
 
 await mongoose.connect(
-  'mongodb://artemis:artemis@localhost:27017/artemis'
+  'mongodb://artemis:artemis@localhost:27017/artemis?authSource=admin'
 );
 
 const UserSchema = new mongoose.Schema({ name: String, email: String });

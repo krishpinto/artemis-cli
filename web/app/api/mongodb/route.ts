@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { MongoClient } from "mongodb";
 
-const URI = "mongodb://artemis:artemis@localhost:27017/artemis";
+const URI = "mongodb://artemis:artemis@localhost:27017/artemis?authSource=admin";
 
 // GET /api/mongodb?collection=name&limit=50 — list collections or query documents
 export async function GET(req: Request) {
