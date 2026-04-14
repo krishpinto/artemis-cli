@@ -27,7 +27,7 @@ export default function Sidebar() {
 
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 py-5 border-b border-gray-200">
-        <img src="/artemis-logo.png" alt="Artemis" width={32} height={32} className="shrink-0" />
+        <img src="/artemis-logo.png" alt="Artemis" width={44} height={44} className="shrink-0" />
         <span className="font-bold tracking-[0.15em] text-[13px] text-gray-900 uppercase">Artemis</span>
       </div>
 

@@ -111,6 +111,219 @@ const users = await User.find();` },
       ],
     },
   },
+  {
+    id: "mysql", name: "MySQL", icon: "🐬",
+    snippets: {
+      "Node.js": [
+        { label: "Install", code: "npm install mysql2" },
+        { label: "Connect", code: `import mysql from 'mysql2/promise';
+
+const conn = await mysql.createConnection({
+  host: 'localhost', port: 3306,
+  user: 'artemis', password: 'artemis', database: 'artemis'
+});
+
+const [rows] = await conn.execute('SELECT * FROM users');
+console.log(rows);
+await conn.end();` },
+      ],
+      "Python": [
+        { label: "Install", code: "pip install mysql-connector-python" },
+        { label: "Connect", code: `import mysql.connector
+
+conn = mysql.connector.connect(
+  host='localhost', port=3306,
+  user='artemis', password='artemis', database='artemis'
+)
+cursor = conn.cursor()
+cursor.execute('SELECT * FROM users')
+print(cursor.fetchall())
+conn.close()` },
+      ],
+      "Prisma": [
+        { label: "Install", code: "npm install prisma @prisma/client" },
+        { label: ".env", code: `DATABASE_URL="mysql://artemis:artemis@localhost:3306/artemis"` },
+        { label: "schema.prisma", code: `datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}` },
+      ],
+    },
+  },
+  {
+    id: "minio", name: "MinIO", icon: "🪣",
+    snippets: {
+      "Node.js": [
+        { label: "Install", code: "npm install minio" },
+        { label: "Connect", code: `import { Client } from 'minio';
+
+const minio = new Client({
+  endPoint: 'localhost', port: 9000,
+  useSSL: false,
+  accessKey: 'artemis',
+  secretKey: 'artemis123',
+});
+
+// Create a bucket
+await minio.makeBucket('my-bucket');
+
+// Upload a file
+await minio.putObject('my-bucket', 'hello.txt', 'Hello World');` },
+      ],
+      "Python": [
+        { label: "Install", code: "pip install minio" },
+        { label: "Connect", code: `from minio import Minio
+
+client = Minio(
+  'localhost:9000',
+  access_key='artemis',
+  secret_key='artemis123',
+  secure=False
+)
+
+client.make_bucket('my-bucket')
+print(list(client.list_buckets()))` },
+      ],
+      "AWS SDK (S3-compatible)": [
+        { label: "Install", code: "npm install @aws-sdk/client-s3" },
+        { label: "Connect", code: `import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+
+const s3 = new S3Client({
+  endpoint: 'http://localhost:9000',
+  region: 'us-east-1',
+  credentials: { accessKeyId: 'artemis', secretAccessKey: 'artemis123' },
+  forcePathStyle: true,
+});
+
+await s3.send(new PutObjectCommand({
+  Bucket: 'my-bucket',
+  Key: 'hello.txt',
+  Body: 'Hello World',
+}));` },
+      ],
+    },
+  },
+  {
+    id: "prometheus", name: "Prometheus", icon: "🔥",
+    snippets: {
+      "Node.js": [
+        { label: "Install", code: "npm install prom-client" },
+        { label: "Expose metrics", code: `import express from 'express';
+import client from 'prom-client';
+
+const app = express();
+const register = new client.Registry();
+client.collectDefaultMetrics({ register });
+
+// Custom counter
+const httpRequests = new client.Counter({
+  name: 'http_requests_total',
+  help: 'Total HTTP requests',
+  registers: [register],
+});
+
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
+
+app.listen(3000);` },
+        { label: "Add scrape target", code: `# In prometheus.yml — add your app as a target:
+scrape_configs:
+  - job_name: 'my-app'
+    static_configs:
+      - targets: ['host.docker.internal:3000']` },
+      ],
+      "Python": [
+        { label: "Install", code: "pip install prometheus-client" },
+        { label: "Expose metrics", code: `from prometheus_client import start_http_server, Counter
+import time
+
+REQUESTS = Counter('requests_total', 'Total requests')
+
+start_http_server(8000)  # Prometheus scrapes this
+
+while True:
+    REQUESTS.inc()
+    time.sleep(1)` },
+      ],
+    },
+  },
+  {
+    id: "grafana", name: "Grafana", icon: "📊",
+    snippets: {
+      "Setup": [
+        { label: "Open dashboard", code: "open http://localhost:3000\n# Login: admin / admin" },
+        { label: "Add Prometheus source", code: `# In Grafana UI:
+# 1. Go to Connections → Data Sources → Add
+# 2. Choose Prometheus
+# 3. Set URL: http://artemis-prometheus-svc:9090
+# 4. Click Save & Test` },
+        { label: "Add Postgres source", code: `# In Grafana UI:
+# 1. Go to Connections → Data Sources → Add
+# 2. Choose PostgreSQL
+# 3. Host: artemis-postgres-svc:5432
+# 4. Database: artemis
+# 5. User: postgres  Password: artemis
+# 6. Click Save & Test` },
+      ],
+      "API": [
+        { label: "Install", code: "npm install @grafana/sdk" },
+        { label: "Query via HTTP API", code: `// Grafana HTTP API — query a datasource directly
+const res = await fetch(
+  'http://localhost:3000/api/datasources/proxy/1/api/v1/query?query=up',
+  { headers: { Authorization: 'Basic ' + btoa('admin:admin') } }
+);
+const data = await res.json();
+console.log(data.data.result);` },
+      ],
+    },
+  },
+  {
+    id: "rabbitmq", name: "RabbitMQ", icon: "🐰",
+    snippets: {
+      "Node.js": [
+        { label: "Install", code: "npm install amqplib" },
+        { label: "Publish", code: `import amqp from 'amqplib';
+
+const conn = await amqp.connect('amqp://artemis:artemis@localhost:5672');
+const channel = await conn.createChannel();
+
+await channel.assertQueue('tasks');
+channel.sendToQueue('tasks', Buffer.from('Hello World'));
+
+console.log('Message sent');
+await conn.close();` },
+        { label: "Consume", code: `import amqp from 'amqplib';
+
+const conn = await amqp.connect('amqp://artemis:artemis@localhost:5672');
+const channel = await conn.createChannel();
+
+await channel.assertQueue('tasks');
+channel.consume('tasks', (msg) => {
+  if (msg) {
+    console.log('Received:', msg.content.toString());
+    channel.ack(msg);
+  }
+});` },
+      ],
+      "Python": [
+        { label: "Install", code: "pip install pika" },
+        { label: "Publish", code: `import pika
+
+conn = pika.BlockingConnection(
+  pika.ConnectionParameters(
+    host='localhost', port=5672,
+    credentials=pika.PlainCredentials('artemis', 'artemis')
+  )
+)
+channel = conn.channel()
+channel.queue_declare(queue='tasks')
+channel.basic_publish(exchange='', routing_key='tasks', body='Hello World')
+conn.close()` },
+      ],
+    },
+  },
 ];
 
 function CodeBlock({ code }: { code: string }) {
