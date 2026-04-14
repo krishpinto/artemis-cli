@@ -6,6 +6,15 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Text, useInput } from 'ink';
 import { spawn } from 'child_process';
+
+// Opens a URL in the default browser — works on Windows, macOS, and Linux.
+function openBrowser(url) {
+  const opener =
+    process.platform === 'win32'  ? spawn('cmd',     ['/c', 'start', url], { shell: true }) :
+    process.platform === 'darwin' ? spawn('open',    [url])                                  :
+                                    spawn('xdg-open', [url]);
+  opener.on('error', () => {}); // silently ignore if opener not found
+}
 import { SERVICE_CATALOG } from '../services/catalog.js';
 
 // Standard local ports for port-forwarding (cleaner than NodePorts)
@@ -42,6 +51,9 @@ export default function Done({ results }) {
     Object.fromEntries(deployed.map(r => [r.id, 'starting']))
   );
 
+  // Track whether we've already opened the browser (only do it once)
+  const [browserOpened, setBrowserOpened] = useState(false);
+
   useEffect(() => {
     const activeProcs = {};
     let cancelled = false;
@@ -65,7 +77,16 @@ export default function Done({ results }) {
 
       proc.stdout.on('data', (data) => {
         if (data.toString().includes('Forwarding from')) {
-          setFwdStatus(prev => ({ ...prev, [result.id]: 'live' }));
+          setFwdStatus(prev => {
+            const next = { ...prev, [result.id]: 'live' };
+            // First time any service goes live, open Mission Control in the browser
+            const anyLive = Object.values(next).some(s => s === 'live');
+            if (anyLive && !browserOpened) {
+              setBrowserOpened(true);
+              setTimeout(() => openBrowser('http://localhost:4000'), 500);
+            }
+            return next;
+          });
         }
       });
 
@@ -139,10 +160,16 @@ export default function Done({ results }) {
       <Box flexDirection="column" marginTop={2} paddingLeft={2} borderStyle="single" borderColor="gray">
         <Text color="gray">🛰️  Mission control is live. Press Ctrl+C to abort.</Text>
         <Box marginTop={1}>
-          <Text color="gray">Run <Text color="white">npx artemis status</Text> to see this again.</Text>
+          <Text color="cyan">Opening Mission Control at http://localhost:4000 ...</Text>
+        </Box>
+        <Box marginTop={1}>
+          <Text color="gray">Run <Text color="white">npx artemis-cli status</Text>  to see this again.</Text>
         </Box>
         <Box>
-          <Text color="gray">Run <Text color="white">npx artemis down</Text>   to destroy the mission.</Text>
+          <Text color="gray">Run <Text color="white">npx artemis-cli down</Text>    to destroy the mission.</Text>
+        </Box>
+        <Box>
+          <Text color="gray">Run <Text color="white">npx artemis-cli ui</Text>      to reopen the dashboard.</Text>
         </Box>
       </Box>
 
