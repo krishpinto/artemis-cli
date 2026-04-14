@@ -1,17 +1,25 @@
 // index.js — The entry point. This is the first file that runs when you type "artemis".
 //
 // It handles two things:
-//   1. Sub-commands: "artemis status" and "artemis down" (no TUI needed for these)
+//   1. Sub-commands: "artemis status", "artemis down", "artemis connect", "artemis ui"
 //   2. Default: renders the full TUI via Ink's render() function
 
 import { render } from 'ink';
 import { spawn } from 'child_process';
+import { existsSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join, resolve } from 'path';
 import React from 'react';
 import App from './app.jsx';
 import { createK8sClient } from './k8s/client.js';
 import { teardownService } from './k8s/deploy.js';
 import { SERVICE_CATALOG } from './services/catalog.js';
 import chalk from 'chalk';
+
+// __dirname isn't available in ESM — this is the standard workaround.
+// import.meta.url is the file:// URL of the current module; fileURLToPath converts
+// it to an OS path, and dirname() gives us the folder it lives in.
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // process.argv contains all command-line arguments.
 // argv[0] = "node", argv[1] = path to this file, argv[2] = the sub-command (if any)
@@ -133,6 +141,60 @@ else if (subcommand === 'connect') {
     clearInterval(keepAlive);
     active.forEach(({ proc }) => proc.kill());
     console.log(chalk.yellow('\n  Stopped port forwarding.\n'));
+    process.exit(0);
+  });
+}
+
+// ── "artemis ui" ─────────────────────────────────────────────────────────────
+// Starts the Mission Control web dashboard and opens it in your browser.
+// The web UI lives in the /web subdirectory of the CLI package.
+else if (subcommand === 'ui') {
+  // Work out where the web/ folder is, relative to this source file.
+  // In development: src/ lives next to web/, so go up one level.
+  // When bundled to dist/: dist/ also lives next to web/, same logic.
+  const webDir = resolve(__dirname, '..', 'web');
+
+  if (!existsSync(webDir)) {
+    console.log(chalk.red('\n  ✗ Web UI not found.'));
+    console.log(chalk.gray(`  Expected it at: ${webDir}`));
+    console.log(chalk.gray('  Make sure you cloned the full repo.\n'));
+    process.exit(1);
+  }
+
+  console.log(chalk.cyan('\n  🛰️  ARTEMIS — launching Mission Control\n'));
+  console.log(chalk.gray('  Starting Next.js dev server at http://localhost:4000 ...\n'));
+
+  // Spawn `npm run dev` inside the web/ folder.
+  // stdio: 'inherit' means the web server's output appears in this terminal.
+  const webServer = spawn('npm', ['run', 'dev'], {
+    cwd: webDir,
+    stdio: 'inherit',
+    shell: true,   // needed on Windows so npm is found
+  });
+
+  // Give Next.js a few seconds to start, then open the browser.
+  // We use `open` (cross-platform URL opener) if available, otherwise fall back
+  // to platform-specific commands.
+  setTimeout(() => {
+    const url = 'http://localhost:4000';
+    const opener =
+      process.platform === 'win32'  ? spawn('cmd',    ['/c', 'start', url],   { shell: true }) :
+      process.platform === 'darwin' ? spawn('open',   [url])                                   :
+                                      spawn('xdg-open',[url]);
+    opener.on('error', () => {
+      // If the opener fails, just print the URL — user can click it
+      console.log(chalk.cyan(`\n  → Open manually: ${url}\n`));
+    });
+  }, 3500);
+
+  webServer.on('close', (code) => {
+    console.log(chalk.yellow(`\n  Mission Control shut down (exit code ${code}).\n`));
+    process.exit(code ?? 0);
+  });
+
+  // Ctrl+C should also kill the web server cleanly
+  process.on('SIGINT', () => {
+    webServer.kill();
     process.exit(0);
   });
 }
