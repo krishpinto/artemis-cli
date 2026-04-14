@@ -43,11 +43,17 @@ export default function Done({ results }) {
   );
 
   useEffect(() => {
-    const procs = [];
+    const activeProcs = {};
+    let cancelled = false;
 
-    for (const result of deployed) {
+    // startForward — starts a kubectl port-forward for one service.
+    // If it dies (pod not ready yet), waits 3s and retries automatically.
+    function startForward(result) {
+      if (cancelled) return;
       const pf = PORT_MAP[result.id];
-      if (!pf) continue;
+      if (!pf) return;
+
+      setFwdStatus(prev => ({ ...prev, [result.id]: 'starting' }));
 
       const proc = spawn('kubectl', [
         'port-forward',
@@ -55,22 +61,28 @@ export default function Done({ results }) {
         `${pf.local}:${pf.remote}`,
       ], { stdio: 'pipe' });
 
-      procs.push(proc);
+      activeProcs[result.id] = proc;
 
-      // When kubectl prints "Forwarding from..." it means the tunnel is open
       proc.stdout.on('data', (data) => {
         if (data.toString().includes('Forwarding from')) {
           setFwdStatus(prev => ({ ...prev, [result.id]: 'live' }));
         }
       });
 
-      proc.on('close', () => {
-        setFwdStatus(prev => ({ ...prev, [result.id]: 'closed' }));
+      proc.on('close', (code) => {
+        if (cancelled) return;
+        // Non-zero exit = pod not ready yet. Retry after 3s.
+        setFwdStatus(prev => ({ ...prev, [result.id]: 'starting' }));
+        setTimeout(() => startForward(result), 3000);
       });
     }
 
-    // Kill all port-forwards when the process exits
-    const cleanup = () => procs.forEach(p => p.kill());
+    for (const result of deployed) startForward(result);
+
+    const cleanup = () => {
+      cancelled = true;
+      Object.values(activeProcs).forEach(p => p.kill());
+    };
     process.on('SIGINT', cleanup);
     process.on('exit', cleanup);
 
@@ -99,9 +111,8 @@ export default function Done({ results }) {
                 <Box>
                   <Text color="green">  ● </Text>
                   <Text color="white" bold>{service.name.padEnd(14)}</Text>
-                  {status === 'live'    && <Text color="green"> 🟢 live</Text>}
-                  {status === 'starting'&& <Text color="yellow"> ⏳ connecting...</Text>}
-                  {status === 'closed'  && <Text color="red"> 🔴 disconnected</Text>}
+                  {status === 'live'    && <Text color="green">  🟢 live</Text>}
+                  {status === 'starting'&& <Text color="yellow">  ⏳ waiting for pod...</Text>}
                 </Box>
                 <Box paddingLeft={5}>
                   <Text color="cyan">{cs}</Text>
