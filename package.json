@@ -1,20 +1,47 @@
 {
   "name": "artemis-cli",
   "version": "1.0.0",
-  "description": "One-command local dev infrastructure for Kubernetes",
+  "description": "One-command local dev infrastructure — deploy Postgres, Redis, MongoDB and more to Kubernetes instantly",
   "type": "module",
   "main": "dist/cli.js",
   "bin": {
-    "artemis": "./dist/cli.js"
+    "artemis": "dist/cli.js"
   },
   "scripts": {
     "build": "node build.js",
+    "prepublishOnly": "node build.js",
     "dev": "npm run build && node dist/cli.js",
     "status": "npm run build && node dist/cli.js status",
     "down": "npm run build && node dist/cli.js down"
   },
-  "keywords": ["kubernetes", "cli", "devtools"],
+  "files": [
+    "dist/",
+    "web/",
+    "stubs/"
+  ],
+  "keywords": [
+    "kubernetes",
+    "cli",
+    "devtools",
+    "postgres",
+    "redis",
+    "mongodb",
+    "docker",
+    "k8s",
+    "infrastructure"
+  ],
   "author": "Krish Pinto",
+  "homepage": "https://github.com/krishpinto/artemis-cli",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/krishpinto/artemis-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/krishpinto/artemis-cli/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "license": "MIT",
   "dependencies": {
     "@kubernetes/client-node": "^1.4.0",
