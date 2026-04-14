@@ -51,8 +51,10 @@ export default function Done({ results }) {
     Object.fromEntries(deployed.map(r => [r.id, 'starting']))
   );
 
-  // Track whether we've already opened the browser (only do it once)
-  const [browserOpened, setBrowserOpened] = useState(false);
+  // Use a ref (not state) for browserOpened — state causes stale closures inside
+  // useEffect, so the flag never actually prevents double-opens.
+  // A ref is mutable and always gives the current value inside any closure.
+  const browserOpened = React.useRef(false);
 
   useEffect(() => {
     const activeProcs = {};
@@ -61,10 +63,11 @@ export default function Done({ results }) {
     // markLive — flips a service to 🟢 live and opens the browser the first time
     function markLive(id) {
       setFwdStatus(prev => {
+        if (prev[id] === 'live') return prev; // already live, no-op
         const next = { ...prev, [id]: 'live' };
-        const anyLive = Object.values(next).some(s => s === 'live');
-        if (anyLive && !browserOpened) {
-          setBrowserOpened(true);
+        // Open browser once — use ref so the check is never stale
+        if (!browserOpened.current) {
+          browserOpened.current = true;
           setTimeout(() => openBrowser('http://localhost:4000'), 500);
         }
         return next;
@@ -89,10 +92,16 @@ export default function Done({ results }) {
       activeProcs[result.id] = proc;
 
       // kubectl sometimes writes "Forwarding from" to stdout, sometimes stderr
-      // — listen to both so we never miss it
+      // — listen to both so we never miss it.
+      // Also: if the port is already bound (previous session still running),
+      // kubectl exits with "bind: only one usage..." — that means the forward
+      // IS active, just held by the old process. Mark as live immediately.
       function onData(data) {
         const text = data.toString();
         if (text.includes('Forwarding from')) {
+          markLive(result.id);
+        }
+        if (text.includes('bind:') || text.includes('already in use') || text.includes('address already')) {
           markLive(result.id);
         }
       }

@@ -1,0 +1,9 @@
+# Don't ship source or dev files to npm — only dist/ and web/ matter
+src/
+node_modules/
+web/node_modules/
+web/.next/
+*.log
+.git/
+.gitignore
+build.js
