@@ -8,10 +8,10 @@ Just run it, pick your services, and get copy-paste connection strings.
 
 ---
 
-## What it does
+## Quick Start
 
-```
-npx artemis
+```bash
+npx artemis-cli
 ```
 
 - Launches an interactive terminal UI
@@ -35,11 +35,36 @@ That's it.
 ## Commands
 
 ```bash
-npx artemis          # launch the TUI and deploy services
-npx artemis status   # see what's running + connection strings
-npx artemis down     # tear everything down
-npx artemis connect  # open mission control (port-forwards all services to localhost)
+npx artemis-cli            # launch the TUI and deploy services
+npx artemis-cli status     # see what's running + connection strings
+npx artemis-cli down       # tear everything down
+npx artemis-cli connect    # port-forward all services to localhost
+npx artemis-cli ui         # open the Mission Control web dashboard
 ```
+
+Or install globally for shorter commands:
+
+```bash
+npm install -g artemis-cli
+
+artemis                    # launch the TUI
+artemis status
+artemis down
+artemis connect
+artemis ui
+```
+
+---
+
+## Mission Control (Web UI)
+
+Run `npx artemis-cli ui` to open a local web dashboard at `http://localhost:4000`:
+
+- **Dashboard** — live status of all deployed services with connection strings
+- **PostgreSQL** — browse tables and run SQL queries in the browser
+- **Redis** — browse keys, view values by type, add and delete keys
+- **MongoDB** — browse collections and inspect documents as JSON
+- **Docs** — copy-paste connection snippets for Node.js, Python, Prisma, Mongoose
 
 ---
 
@@ -74,6 +99,7 @@ All services use `imagePullPolicy: IfNotPresent` so once pulled, deploys are ins
 
 - [Ink](https://github.com/vadimdemedes/ink) — React for CLIs
 - [@kubernetes/client-node](https://github.com/kubernetes-client/javascript) — Kubernetes JS client
+- [Next.js](https://nextjs.org/) — web dashboard
 - [esbuild](https://esbuild.github.io/) — bundler
 
 ---
