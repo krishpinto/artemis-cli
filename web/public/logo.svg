@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none">
+  <!-- Left leg of A: bottom-left to apex -->
+  <line x1="6" y1="30" x2="18" y2="7" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Right leg of A: bottom-right to apex -->
+  <line x1="30" y1="30" x2="18" y2="7" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Orbit arc crossbar: elliptical arc replacing the traditional crossbar -->
+  <path d="M11 21 Q18 16.5 25 21" stroke="#2563eb" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <!-- Spacecraft dot at apex -->
+  <circle cx="18" cy="7" r="2" fill="#2563eb"/>
+</svg>

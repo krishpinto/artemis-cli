@@ -26,9 +26,26 @@ export default function Sidebar() {
     <aside className="flex flex-col w-56 shrink-0 border-r border-gray-200 bg-white h-screen sticky top-0">
 
       {/* Logo */}
-      <div className="flex items-center gap-2 px-4 py-5 border-b border-gray-200">
-        <span className="text-lg">🚀</span>
-        <span className="font-bold text-gray-900 tracking-widest text-sm uppercase">Artemis</span>
+      <div className="flex items-center gap-2.5 px-4 py-5 border-b border-gray-200">
+        {/* Artemis icon mark — Orbital A */}
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 36 36"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          {/* Left leg of A */}
+          <line x1="6" y1="30" x2="18" y2="7" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          {/* Right leg of A */}
+          <line x1="30" y1="30" x2="18" y2="7" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          {/* Orbit arc crossbar */}
+          <path d="M11 21 Q18 16.5 25 21" stroke="#2563eb" strokeWidth="2" strokeLinecap="round"/>
+          {/* Spacecraft dot at apex */}
+          <circle cx="18" cy="7" r="2" fill="#2563eb"/>
+        </svg>
+        <span className="font-bold tracking-[0.15em] text-[13px] text-gray-900 uppercase">Artemis</span>
       </div>
 
       {/* Nav */}
