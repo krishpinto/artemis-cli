@@ -163,47 +163,76 @@ else if (subcommand === 'ui') {
 
   console.log(chalk.cyan('\n  🛰️  ARTEMIS — launching Mission Control\n'));
 
+  // Animates a rocket bouncing across a track while the cat watches.
+  // Returns stop() which clears the line and restores the cursor.
+  function startAnimation(label) {
+    const width = 8;
+    let pos = 0, dir = 1;
+    process.stdout.write('\x1B[?25l'); // hide cursor while animating
+    const draw = () => {
+      const track = Array(width).fill('·');
+      track[pos] = '🚀';
+      process.stdout.write(`\r  😸  ${track.join(' ')}  ${chalk.gray(label)}`);
+      pos += dir;
+      if (pos >= width - 1) dir = -1;
+      if (pos <= 0)         dir =  1;
+    };
+    draw();
+    const timer = setInterval(draw, 120);
+    return () => {
+      clearInterval(timer);
+      process.stdout.write('\x1B[?25h'); // restore cursor
+      process.stdout.write('\r' + ' '.repeat(72) + '\r');
+    };
+  }
+
   // If web/node_modules is missing (fresh npx install), run `npm install` first.
+  // Suppress npm's noisy output and show the animation instead.
   const webModules = resolve(webDir, 'node_modules');
   if (!existsSync(webModules)) {
-    console.log(chalk.gray('  Installing web dependencies (first run only)...\n'));
-    const install = spawn('npm', ['install'], {
-      cwd: webDir,
-      stdio: 'inherit',
-      shell: true,
-    });
+    const stopInstall = startAnimation('Installing web dependencies (first run only)...');
+    const install = spawn('npm', ['install'], { cwd: webDir, stdio: 'pipe', shell: true });
     await new Promise((res, rej) => {
       install.on('close', code => code === 0 ? res() : rej(new Error(`npm install failed (exit ${code})`)));
     });
-    console.log('');
+    stopInstall();
+    console.log(chalk.green('  ✓ Dependencies ready\n'));
   }
 
-  console.log(chalk.gray('  Starting Next.js dev server at http://localhost:4000 ...\n'));
+  // Start Next.js and watch stdout for the "Ready" signal.
+  // Only open the browser once the server is actually up — no more blind timeouts.
+  const stopStarting = startAnimation('Starting Mission Control...');
+  let serverReady = false;
 
-  // Spawn `npm run dev` inside the web/ folder.
-  // stdio: 'inherit' means the web server's output appears in this terminal.
   const webServer = spawn('npm', ['run', 'dev'], {
     cwd: webDir,
-    stdio: 'inherit',
-    shell: true,   // needed on Windows so npm is found
+    stdio: ['inherit', 'pipe', 'pipe'],
+    shell: true,
   });
 
-  // Give Next.js a few seconds to start, then open the browser.
-  // We use `open` (cross-platform URL opener) if available, otherwise fall back
-  // to platform-specific commands.
-  setTimeout(() => {
-    const url = 'http://localhost:4000';
-    const opener =
-      process.platform === 'win32'  ? spawn('cmd',    ['/c', 'start', url],   { shell: true }) :
-      process.platform === 'darwin' ? spawn('open',   [url])                                   :
-                                      spawn('xdg-open',[url]);
-    opener.on('error', () => {
-      // If the opener fails, just print the URL — user can click it
-      console.log(chalk.cyan(`\n  → Open manually: ${url}\n`));
-    });
-  }, 3500);
+  webServer.stdout.on('data', (data) => {
+    const text = data.toString();
+    if (!serverReady && text.includes('Ready')) {
+      serverReady = true;
+      stopStarting();
+      console.log(chalk.green('  ✓ Mission Control is live →') + chalk.cyan.bold(' http://localhost:4000\n'));
+      const url = 'http://localhost:4000';
+      const opener =
+        process.platform === 'win32'  ? spawn('cmd',      ['/c', 'start', url], { shell: true }) :
+        process.platform === 'darwin' ? spawn('open',     [url])                                  :
+                                        spawn('xdg-open', [url]);
+      opener.on('error', () => console.log(chalk.cyan(`\n  → Open manually: ${url}\n`)));
+    } else if (serverReady) {
+      // Forward any subsequent Next.js output (recompiles, errors) to the terminal
+      process.stdout.write(text);
+    }
+  });
+
+  // Always forward stderr — catches port-in-use and other startup errors
+  webServer.stderr.on('data', (data) => process.stderr.write(data));
 
   webServer.on('close', (code) => {
+    if (!serverReady) stopStarting();
     console.log(chalk.yellow(`\n  Mission Control shut down (exit code ${code}).\n`));
     process.exit(code ?? 0);
   });
