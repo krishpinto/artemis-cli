@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm view:*)",
+      "Bash(npm pack:*)",
+      "Read(//c/tmp/**)",
+      "Bash(curl -sL https://registry.npmjs.org/artemis-cli/-/artemis-cli-1.0.6.tgz)",
+      "Bash(tar xz:*)",
+      "Read(//tmp/package/web/components/**)",
+      "Bash(npm run:*)",
+      "Bash(kill %1)",
+      "Bash(ls .next/dev/logs/)",
+      "Bash(tail -50 .next/dev/logs/next-development.log)",
+      "Bash(netstat -ano)",
+      "Bash(wmic process:*)",
+      "Bash(tasklist /fi \"PID eq 3628\" /v)",
+      "Bash(taskkill /PID 3628 /F)",
+      "Bash(npm version:*)",
+      "Bash(npm publish:*)",
+      "Bash(npm whoami:*)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(cmd /c \"taskkill /F /IM node.exe\")",
+      "Bash(cmd /c \"taskkill /F /IM node.exe && echo killed || echo no_node\")"
+    ]
+  }
+}

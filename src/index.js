@@ -162,6 +162,22 @@ else if (subcommand === 'ui') {
   }
 
   console.log(chalk.cyan('\n  🛰️  ARTEMIS — launching Mission Control\n'));
+
+  // If web/node_modules is missing (fresh npx install), run `npm install` first.
+  const webModules = resolve(webDir, 'node_modules');
+  if (!existsSync(webModules)) {
+    console.log(chalk.gray('  Installing web dependencies (first run only)...\n'));
+    const install = spawn('npm', ['install'], {
+      cwd: webDir,
+      stdio: 'inherit',
+      shell: true,
+    });
+    await new Promise((res, rej) => {
+      install.on('close', code => code === 0 ? res() : rej(new Error(`npm install failed (exit ${code})`)));
+    });
+    console.log('');
+  }
+
   console.log(chalk.gray('  Starting Next.js dev server at http://localhost:4000 ...\n'));
 
   // Spawn `npm run dev` inside the web/ folder.
