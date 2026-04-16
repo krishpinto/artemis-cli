@@ -20,8 +20,7 @@ function Header() {
     <Box flexDirection="column" paddingLeft={2} paddingTop={1}>
       <Text color="cyan">{ASCII}</Text>
       <Box marginTop={1} marginBottom={1}>
-        <Text color="white">  🚀 One command. </Text>
-        <Text color="cyan" bold>Launch your entire dev stack.</Text>
+        <Text color="gray">  Deploy Postgres, Redis, MongoDB, MySQL, MinIO, Prometheus, Grafana and RabbitMQ to Kubernetes in one command.</Text>
         <Text color="gray">  ·  v{__APP_VERSION__} by Krish Pinto</Text>
       </Box>
     </Box>

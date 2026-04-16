@@ -27,8 +27,10 @@ export default function Splash({ onDone }) {
       <Text color="cyan">{ASCII}</Text>
 
       <Box marginTop={1}>
-        <Text color="white">  🚀 One command. </Text>
-        <Text color="cyan" bold>Launch your entire dev stack.</Text>
+        <Text color="gray">  Deploy Postgres, Redis, MongoDB, MySQL, MinIO, Prometheus, Grafana and RabbitMQ</Text>
+      </Box>
+      <Box>
+        <Text color="gray">  to Kubernetes in one command — no config, no YAML, no setup.</Text>
       </Box>
 
       <Box marginTop={1}>
