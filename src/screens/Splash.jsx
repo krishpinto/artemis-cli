@@ -32,7 +32,7 @@ export default function Splash({ onDone }) {
       </Box>
 
       <Box marginTop={1}>
-        <Text color="gray">  v1.0.0  ·  by Krish Pinto</Text>
+        <Text color="gray">  v{__APP_VERSION__}  ·  by Krish Pinto</Text>
       </Box>
 
       <Box marginTop={1}>

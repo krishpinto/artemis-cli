@@ -153,7 +153,7 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="px-4 py-3 border-t border-gray-200">
-        <p className="text-xs text-gray-400 font-mono">v1.0.0 · Krish Pinto</p>
+        <p className="text-xs text-gray-400 font-mono">v{process.env.NEXT_PUBLIC_VERSION} · Krish Pinto</p>
       </div>
     </aside>
   );

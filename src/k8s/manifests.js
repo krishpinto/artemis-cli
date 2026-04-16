@@ -118,8 +118,12 @@ export function makeDeployment(service) {
 export function makeService(service) {
   const name = `artemis-${service.id}`;
 
-  // Each port in the catalog becomes a port mapping in the Service
-  const ports = service.ports.map(p => ({
+  // Each port in the catalog becomes a port mapping in the Service.
+  // When a Service has multiple ports, Kubernetes requires each port to have a unique name.
+  const ports = service.ports.map((p, i) => ({
+    // Use a custom name if provided, otherwise fall back to "port-0", "port-1", etc.
+    // Single-port services don't strictly need this but it doesn't hurt.
+    name: p.name ?? `port-${i}`,
     port: p.containerPort,       // port inside the cluster (other pods use this)
     targetPort: p.containerPort, // port on the container itself
     nodePort: p.nodePort,        // port on your localhost — this is what you connect to

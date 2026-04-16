@@ -1,6 +1,6 @@
 {
   "name": "artemis-cli",
-  "version": "1.0.9",
+  "version": "1.0.11",
   "description": "One-command local dev infrastructure — deploy Postgres, Redis, MongoDB and more to Kubernetes instantly",
   "type": "module",
   "main": "dist/cli.js",

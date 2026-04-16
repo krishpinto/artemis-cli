@@ -22,7 +22,7 @@ function Header() {
       <Box marginTop={1} marginBottom={1}>
         <Text color="white">  🚀 One command. </Text>
         <Text color="cyan" bold>Launch your entire dev stack.</Text>
-        <Text color="gray">  ·  v1.0.0 by Krish Pinto</Text>
+        <Text color="gray">  ·  v{__APP_VERSION__} by Krish Pinto</Text>
       </Box>
     </Box>
   );

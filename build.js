@@ -5,6 +5,9 @@
 // Same result, much cleaner.
 
 import * as esbuild from 'esbuild';
+import { readFileSync } from 'fs';
+
+const { version } = JSON.parse(readFileSync('./package.json', 'utf8'));
 
 await esbuild.build({
   entryPoints: ['src/index.js'],
@@ -27,7 +30,11 @@ await esbuild.build({
 
   // This tells esbuild (and Ink) we're in production mode.
   // Ink checks this to decide whether to load devtools — in production it skips it.
-  define: { 'process.env.NODE_ENV': '"production"' },
+  // __APP_VERSION__ is replaced at bundle time with the version from package.json.
+  define: {
+    'process.env.NODE_ENV': '"production"',
+    '__APP_VERSION__': JSON.stringify(version),
+  },
 
   // The banner is prepended to the top of the output file.
   // We need two things here:
