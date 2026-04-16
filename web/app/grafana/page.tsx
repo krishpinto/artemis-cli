@@ -9,7 +9,7 @@ export default function GrafanaPage() {
         <div className="flex items-center gap-2">
           <BarChart2 className="w-4 h-4 text-orange-400" />
           <span className="font-semibold text-sm text-gray-900">Grafana</span>
-          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-mono">port 30300</span>
+          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-mono">port 3000</span>
         </div>
         <div className="flex items-center gap-4 font-mono text-xs text-gray-500">
           <span><span className="text-gray-400">user</span> admin</span>
@@ -19,7 +19,7 @@ export default function GrafanaPage() {
 
       {/* Full-height iframe — Grafana has its own complete UI */}
       <iframe
-        src="http://localhost:30300"
+        src="http://localhost:3000"
         className="flex-1 w-full border-0"
         allow="same-origin"
       />

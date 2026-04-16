@@ -8,8 +8,8 @@ export default function RabbitMQPage() {
         <div className="flex items-center gap-2">
           <Rabbit className="w-4 h-4 text-orange-600" />
           <span className="font-semibold text-sm text-gray-900">RabbitMQ</span>
-          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-mono">mgmt 30673</span>
-          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-mono">AMQP 30672</span>
+          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-mono">mgmt 15672</span>
+          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-mono">AMQP 5672</span>
         </div>
         <div className="flex items-center gap-4 font-mono text-xs text-gray-500">
           <span><span className="text-gray-400">user</span> artemis</span>
@@ -29,13 +29,13 @@ export default function RabbitMQPage() {
             </p>
           </div>
           <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 text-left space-y-2">
-            <p className="text-xs font-mono text-gray-500"><span className="text-gray-400">Mgmt UI</span>  http://localhost:30673</p>
-            <p className="text-xs font-mono text-gray-500"><span className="text-gray-400">AMQP</span>     amqp://artemis:artemis@localhost:30672</p>
+            <p className="text-xs font-mono text-gray-500"><span className="text-gray-400">Mgmt UI</span>  http://localhost:15672</p>
+            <p className="text-xs font-mono text-gray-500"><span className="text-gray-400">AMQP</span>     amqp://artemis:artemis@localhost:5672</p>
             <p className="text-xs font-mono text-gray-500"><span className="text-gray-400">User</span>     artemis</p>
             <p className="text-xs font-mono text-gray-500"><span className="text-gray-400">Pass</span>     artemis</p>
           </div>
           <a
-            href="http://localhost:30673"
+            href="http://localhost:15672"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-orange-600 text-white text-sm font-medium hover:bg-orange-700 transition-colors"

@@ -8,8 +8,8 @@ export default function MinIOPage() {
         <div className="flex items-center gap-2">
           <HardDrive className="w-4 h-4 text-blue-600" />
           <span className="font-semibold text-sm text-gray-900">MinIO</span>
-          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-mono">console 30901</span>
-          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-mono">S3 API 30900</span>
+          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-mono">console 9001</span>
+          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-mono">S3 API 9000</span>
         </div>
         <div className="flex items-center gap-4 font-mono text-xs text-gray-500">
           <span><span className="text-gray-400">access</span> artemis</span>
@@ -29,13 +29,13 @@ export default function MinIOPage() {
             </p>
           </div>
           <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 text-left space-y-2">
-            <p className="text-xs font-mono text-gray-500"><span className="text-gray-400">Console</span>  http://localhost:30901</p>
-            <p className="text-xs font-mono text-gray-500"><span className="text-gray-400">S3 API</span>   http://localhost:30900</p>
+            <p className="text-xs font-mono text-gray-500"><span className="text-gray-400">Console</span>  http://localhost:9001</p>
+            <p className="text-xs font-mono text-gray-500"><span className="text-gray-400">S3 API</span>   http://localhost:9000</p>
             <p className="text-xs font-mono text-gray-500"><span className="text-gray-400">Access</span>   artemis</p>
             <p className="text-xs font-mono text-gray-500"><span className="text-gray-400">Secret</span>   artemis123</p>
           </div>
           <a
-            href="http://localhost:30901"
+            href="http://localhost:9001"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"

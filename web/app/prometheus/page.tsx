@@ -8,11 +8,11 @@ export default function PrometheusPage() {
         <div className="flex items-center gap-2">
           <Flame className="w-4 h-4 text-orange-500" />
           <span className="font-semibold text-sm text-gray-900">Prometheus</span>
-          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-mono">port 30090</span>
+          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-mono">port 9090</span>
         </div>
         <div className="flex items-center gap-4 font-mono text-xs text-gray-500">
           <span><span className="text-gray-400">auth</span> none</span>
-          <span><span className="text-gray-400">endpoint</span> http://localhost:30090</span>
+          <span><span className="text-gray-400">endpoint</span> http://localhost:9090</span>
         </div>
       </div>
 
@@ -28,11 +28,11 @@ export default function PrometheusPage() {
             </p>
           </div>
           <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 text-left space-y-2">
-            <p className="text-xs font-mono text-gray-500"><span className="text-gray-400">URL</span>    http://localhost:30090</p>
+            <p className="text-xs font-mono text-gray-500"><span className="text-gray-400">URL</span>    http://localhost:9090</p>
             <p className="text-xs font-mono text-gray-500"><span className="text-gray-400">Auth</span>   none required</p>
           </div>
           <a
-            href="http://localhost:30090"
+            href="http://localhost:9090"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-orange-500 text-white text-sm font-medium hover:bg-orange-600 transition-colors"

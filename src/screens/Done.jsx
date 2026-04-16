@@ -23,16 +23,17 @@ function openBrowser(url) {
   opener.on('error', () => {});
 }
 
-// Standard local ports for port-forwarding
+// Standard local ports for port-forwarding.
+// Each entry is an array so multi-port services (MinIO, RabbitMQ) can forward all their ports.
 const PORT_MAP = {
-  postgres:   { local: 5432,  remote: 5432  },
-  redis:      { local: 6379,  remote: 6379  },
-  mongodb:    { local: 27017, remote: 27017 },
-  mysql:      { local: 3306,  remote: 3306  },
-  minio:      { local: 9000,  remote: 9000  },
-  prometheus: { local: 9090,  remote: 9090  },
-  grafana:    { local: 3000,  remote: 3000  },
-  rabbitmq:   { local: 5672,  remote: 5672  },
+  postgres:   [{ local: 5432,  remote: 5432  }],
+  redis:      [{ local: 6379,  remote: 6379  }],
+  mongodb:    [{ local: 27017, remote: 27017 }],
+  mysql:      [{ local: 3306,  remote: 3306  }],
+  minio:      [{ local: 9000,  remote: 9000  }, { local: 9001, remote: 9001 }],
+  prometheus: [{ local: 9090,  remote: 9090  }],
+  grafana:    [{ local: 3000,  remote: 3000  }],
+  rabbitmq:   [{ local: 5672,  remote: 5672  }, { local: 15672, remote: 15672 }],
 };
 
 const FORWARDED_STRINGS = {
@@ -40,7 +41,7 @@ const FORWARDED_STRINGS = {
   redis:      'redis://localhost:6379',
   mongodb:    'mongodb://artemis:artemis@localhost:27017/artemis',
   mysql:      'mysql://artemis:artemis@localhost:3306/artemis',
-  minio:      'http://localhost:9000  (key: artemis / secret: artemis123)',
+  minio:      'Console → http://localhost:9001  (artemis / artemis123)  ·  S3 API → http://localhost:9000',
   prometheus: 'http://localhost:9090',
   grafana:    'http://localhost:3000  (admin / admin)',
   rabbitmq:   'amqp://artemis:artemis@localhost:5672',
@@ -85,15 +86,16 @@ export default function Done({ results }) {
 
     function startForward(result) {
       if (cancelled) return;
-      const pf = PORT_MAP[result.id];
-      if (!pf) return;
+      const ports = PORT_MAP[result.id];
+      if (!ports) return;
 
       setFwdStatus(prev => ({ ...prev, [result.id]: 'starting' }));
 
+      // Pass all port mappings in a single kubectl port-forward call
       const proc = spawn('kubectl', [
         'port-forward',
         `svc/artemis-${result.id}-svc`,
-        `${pf.local}:${pf.remote}`,
+        ...ports.map(p => `${p.local}:${p.remote}`),
       ], { stdio: 'pipe' });
 
       activeProcs[result.id] = proc;
