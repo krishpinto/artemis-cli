@@ -130,6 +130,8 @@ export const SERVICE_CATALOG = [
     ports: [{ containerPort: 3000, nodePort: 30300 }],
     env: [
       { name: 'GF_SECURITY_ADMIN_PASSWORD', value: 'admin' },
+      // Allow Grafana to be embedded in iframes — without this it sends X-Frame-Options: deny
+      { name: 'GF_SECURITY_ALLOW_EMBEDDING', value: 'true' },
     ],
     pvc: null,
     connectionStrings: [
